@@ -1,11 +1,10 @@
-"""Educational hotel lamp remote: HTTP + WebSocket + SQLite."""
+"""Educational hotel lamp WebSocket API behind nginx."""
 import json
 import sqlite3
 from pathlib import Path
 from aiohttp import web, WSMsgType
 
-BASE = Path(__file__).resolve().parent.parent
-DB = BASE / "lamp.sqlite3"
+DB = Path(__file__).resolve().parent.parent / "lamp.sqlite3"
 CLIENTS = set()
 
 def connect():
@@ -52,8 +51,8 @@ async def socket_handler(request):
 app = web.Application()
 app.router.add_get("/api/state", state_handler)
 app.router.add_get("/ws", socket_handler)
-app.router.add_static("/", BASE / "frontend", show_index=True)
 
 if __name__ == "__main__":
     connect().close()
-    web.run_app(app, host="0.0.0.0", port=8080)
+    # nginx exposes port 8080; backend only listens on loopback
+    web.run_app(app, host="127.0.0.1", port=8765)
