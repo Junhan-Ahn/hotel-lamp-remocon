@@ -3,3 +3,7 @@ __pycache__/
 .venv/
 lamp.sqlite3
 *.db
+nginx/runtime/
+nginx/logs/
+nginx/temp/
+nginx.generated.conf
