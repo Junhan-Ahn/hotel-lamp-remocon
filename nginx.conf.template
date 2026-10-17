@@ -1,0 +1,32 @@
+# Template: run python scripts/configure_nginx.py to create nginx.generated.conf
+worker_processes 1;
+events { worker_connections 1024; }
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+    access_log off;
+    server {
+        listen 8080;
+        server_name _;
+        root __FRONTEND_DIR__;
+        index index.html;
+
+        location / {
+            try_files $uri $uri/ =404;
+        }
+
+        location /ws {
+            proxy_pass http://127.0.0.1:8765;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_read_timeout 3600s;
+        }
+
+        location /api/ {
+            proxy_pass http://127.0.0.1:8765;
+            proxy_set_header Host $host;
+        }
+    }
+}
