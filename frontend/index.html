@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>호텔 전등 리모컨</title>
+<style>
+body{background:#191c28;color:white;font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0}
+main{background:#282d40;border-radius:20px;padding:35px;text-align:center;box-shadow:0 12px 35px #1118;width:min(90vw,370px)}
+h1{font-size:24px}.lamp{font-size:65px;margin:22px}.on{filter:drop-shadow(0 0 18px gold)}
+button{padding:14px 30px;margin:5px;border:0;border-radius:12px;cursor:pointer;font-weight:bold}
+#on{background:#ffc83d}#off{background:#b5bfd4}#connection{font-size:12px;color:#b6bad2}
+</style>
+</head><body><main>
+<h1>호텔 전등 리모컨</h1><div id="lamp" class="lamp">💡</div>
+<p>전등 상태: <strong id="state">연결 중</strong></p>
+<button id="on" disabled>ON</button><button id="off" disabled>OFF</button>
+<p id="connection">WebSocket 연결 중…</p>
+</main><script>
+const state=document.getElementById('state'),lamp=document.getElementById('lamp'),connection=document.getElementById('connection');
+let ws;
+function draw(on){state.textContent=on?'켜짐':'꺼짐';lamp.classList.toggle('on',on)}
+function connect(){
+ const proto=location.protocol==='https:'?'wss':'ws';ws=new WebSocket(`${proto}://${location.host}/ws`);
+ ws.onopen=()=>{connection.textContent='서버 연결됨';document.querySelectorAll('button').forEach(b=>b.disabled=false)};
+ ws.onmessage=e=>{const p=JSON.parse(e.data);if(p.type==='state')draw(p.on);else if(p.type==='error')connection.textContent=p.message};
+ ws.onclose=()=>{connection.textContent='연결 끊김 · 2초 뒤 재연결';document.querySelectorAll('button').forEach(b=>b.disabled=true);setTimeout(connect,2000)};
+}
+document.getElementById('on').onclick=()=>ws?.readyState===1&&ws.send(JSON.stringify({type:'set',on:true}));
+document.getElementById('off').onclick=()=>ws?.readyState===1&&ws.send(JSON.stringify({type:'set',on:false}));
+connect();
+</script></body></html>
